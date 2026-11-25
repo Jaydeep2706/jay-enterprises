@@ -1,5 +1,4 @@
 const express = require('express');
-const express = require('express');
 const session = require('express-session');
 const PgSession = require('connect-pg-simple')(session);
 const { Pool } = require('pg');
@@ -7,7 +6,9 @@ const bcrypt = require('bcryptjs');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
-const session = require('express-session');
+
+const app = express();
+const PORT = process.env.PORT || 10000;
 const PgSession = require('connect-pg-simple')(session);
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
