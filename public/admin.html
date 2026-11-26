@@ -1,1 +1,83 @@
 
+
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>जय इंटरप्राइजेस - एडमिन लॉगिन</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f1f4f6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .box {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      width: 85%;
+      max-width: 380px;
+      box-shadow: 0 2px 12px #ccc;
+    }
+    h2 { text-align: center; color: #075e54; }
+    input, button {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 13px;
+      margin: 10px 0;
+      border-radius: 7px;
+      font-size: 16px;
+    }
+    input { border: 1px solid #bbb; }
+    button {
+      border: 0;
+      background: #075e54;
+      color: white;
+      cursor: pointer;
+    }
+    #message { text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>जय इंटरप्राइजेस</h2>
+    <h3>एडमिन लॉगिन</h3>
+    <form id="loginForm">
+      <input id="username" placeholder="यूजरनेम" required>
+      <input id="password" type="password" placeholder="पासवर्ड" required>
+      <button type="submit">लॉगिन करें</button>
+    </form>
+    <p id="message"></p>
+  </div>
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const message = document.getElementById('message');
+      message.textContent = 'लॉगिन हो रहा है...';
+      try {
+        const response = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            username: document.getElementById('username').value,
+            password: document.getElementById('password').value
+          })
+        });
+        const data = await response.json();
+        if (response.ok) {
+          window.location.href = '/admin';
+        } else {
+          message.textContent = data.error || 'लॉगिन असफल हुआ।';
+        }
+      } catch (error) {
+        message.textContent = 'सर्वर से संपर्क नहीं हो पाया।';
+      }
+    });
+  </script>
+</body>
+</html>
