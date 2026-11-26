@@ -166,7 +166,25 @@ msg.style.fontSize = '18px';
 msg.style.fontWeight = 'bold';
 msg.textContent = 'ऑर्डर सफल! आपका ऑर्डर नंबर: ' + data.order_id + '। कुल राशि ₹' + data.grand_total;
 alert('आपका ऑर्डर सफलतापूर्वक बुक हो गया। ऑर्डर नंबर: ' + data.order_id);
-const waText = `नमस्ते जय इंटरप्राइजेस, मेरा ऑर्डर नंबर ${data.order_id} है। कुल राशि ₹${data.grand_total} है।`;
+const orderItemsText = items.map(item => {
+  const product = products.find(p => Number(p.id) === item.product_id);
+  return `${product ? product.name : 'सामान'} × ${item.quantity}`;
+}).join('\n');
+
+const waText = `नया ऑर्डर - जय इंटरप्राइजेस
+
+ऑर्डर नंबर: ${data.order_id}
+ग्राहक का नाम: ${document.getElementById('customer').value}
+मोबाइल: ${document.getElementById('phone').value}
+पता: ${document.getElementById('address').value}
+गाँव: ${document.getElementById('village').value}
+
+सामान:
+${orderItemsText}
+
+डिलीवरी शुल्क: ₹${data.delivery_fee}
+कुल राशि: ₹${data.grand_total}
+भुगतान: कैश ऑन डिलीवरी`;
 const waButton = document.createElement('a');
 waButton.href = 'https://wa.me/917389253333?text=' + encodeURIComponent(waText);
 waButton.target = '_blank';
