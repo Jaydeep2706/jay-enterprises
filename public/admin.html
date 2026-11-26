@@ -1,83 +1,181 @@
 
-
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>जय इंटरप्राइजेस - एडमिन लॉगिन</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f1f4f6;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-    }
-    .box {
-      background: white;
-      padding: 25px;
-      border-radius: 12px;
-      width: 85%;
-      max-width: 380px;
-      box-shadow: 0 2px 12px #ccc;
-    }
-    h2 { text-align: center; color: #075e54; }
-    input, button {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 13px;
-      margin: 10px 0;
-      border-radius: 7px;
-      font-size: 16px;
-    }
-    input { border: 1px solid #bbb; }
-    button {
-      border: 0;
-      background: #075e54;
-      color: white;
-      cursor: pointer;
-    }
-    #message { text-align: center; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>जय इंटरप्राइजेस एडमिन</title>
+<style>
+body{font-family:Arial;background:#f1f4f6;margin:0;padding:15px}
+.box{background:white;padding:18px;margin:12px auto;border-radius:10px;max-width:600px}
+h2{color:#075e54;text-align:center}
+input,button,select{box-sizing:border-box;width:100%;padding:12px;margin:7px 0;font-size:16px}
+button{background:#075e54;color:white;border:0;border-radius:6px}
+#dashboard{display:none}
+.item{border-bottom:1px solid #ddd;padding:10px}
+#message{white-space:pre-wrap;text-align:center}
+</style>
 </head>
 <body>
-  <div class="box">
-    <h2>जय इंटरप्राइजेस</h2>
-    <h3>एडमिन लॉगिन</h3>
-    <form id="loginForm">
-      <input id="username" placeholder="यूजरनेम" required>
-      <input id="password" type="password" placeholder="पासवर्ड" required>
-      <button type="submit">लॉगिन करें</button>
-    </form>
-    <p id="message"></p>
-  </div>
-  <script>
-    document.getElementById('loginForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const message = document.getElementById('message');
-      message.textContent = 'लॉगिन हो रहा है...';
-      try {
-        const response = await fetch('/api/admin/login', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({
-            username: document.getElementById('username').value,
-            password: document.getElementById('password').value
-          })
-        });
-        const data = await response.json();
-        if (response.ok) {
-          window.location.href = '/admin';
-        } else {
-          message.textContent = data.error || 'लॉगिन असफल हुआ।';
-        }
-      } catch (error) {
-        message.textContent = 'सर्वर से संपर्क नहीं हो पाया।';
-      }
+<div class="box" id="login">
+<h2>जय इंटरप्राइजेस</h2>
+<h3>एडमिन लॉगिन</h3>
+<form id="loginForm">
+<input id="username" placeholder="यूजरनेम" required>
+<input id="password" type="password" placeholder="पासवर्ड" required>
+<button id="loginBtn">लॉगिन करें</button>
+</form>
+<p id="message"></p>
+</div>
+
+<div id="dashboard">
+<div class="box">
+<h2>एडमिन डैशबोर्ड</h2>
+<button onclick="loadProducts()">सामान की सूची देखें</button>
+<button onclick="loadOrders()">ऑर्डर देखें</button>
+<button onclick="logout()">लॉगआउट</button>
+<p id="status"></p>
+</div>
+
+<div class="box">
+<h3>नया सामान जोड़ें</h3>
+<input id="pname" placeholder="सामान का नाम हिंदी में">
+<input id="pnameen" placeholder="Product name in English">
+<input id="price" type="number" placeholder="कीमत ₹">
+<input id="category" placeholder="श्रेणी">
+<button onclick="addProduct()">सामान जोड़ें</button>
+</div>
+
+<div class="box">
+<h3>सामान की सूची</h3>
+<div id="products"></div>
+</div>
+
+<div class="box">
+<h3>ग्राहकों के ऑर्डर</h3>
+<div id="orders"></div>
+</div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+async function api(url, options={}) {
+  const response = await fetch(url, {
+    credentials:'same-origin',
+    ...options,
+    headers:{'Content-Type':'application/json',...(options.headers||{})}
+  });
+  const data = await response.json();
+  if(!response.ok) throw new Error(data.error || 'कुछ समस्या हुई');
+  return data;
+}
+
+$('loginForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  $('loginBtn').disabled=true;
+  $('message').textContent='लॉगिन हो रहा है...';
+  try {
+    await api('/api/admin/login',{
+      method:'POST',
+      body:JSON.stringify({
+        username:$('username').value.trim(),
+        password:$('password').value
+      })
     });
-  </script>
+    $('login').style.display='none';
+    $('dashboard').style.display='block';
+    $('message').textContent='';
+    loadProducts();
+  } catch(err) {
+    $('message').textContent=err.message;
+  } finally {
+    $('loginBtn').disabled=false;
+  }
+});
+
+async function checkLogin(){
+  try {
+    await api('/api/admin/me');
+    $('login').style.display='none';
+    $('dashboard').style.display='block';
+    loadProducts();
+  } catch(e) {}
+}
+
+async function addProduct(){
+  try {
+    await api('/api/admin/products',{
+      method:'POST',
+      body:JSON.stringify({
+        name:$('pname').value,
+        name_en:$('pnameen').value,
+        price:$('price').value,
+        category:$('category').value
+      })
+    });
+    $('status').textContent='सामान सफलतापूर्वक जुड़ गया';
+    $('pname').value='';
+    $('pnameen').value='';
+    $('price').value='';
+    $('category').value='';
+    loadProducts();
+  } catch(e){$('status').textContent=e.message}
+}
+
+async function loadProducts(){
+  try {
+    const data=await api('/api/products');
+    $('products').innerHTML=data.map(p=>
+      `<div class="item">${escapeHtml(p.name)} — ₹${p.price}</div>`
+    ).join('') || 'अभी कोई सामान नहीं है';
+  } catch(e){$('status').textContent=e.message}
+}
+
+async function loadOrders(){
+  try {
+    const data=await api('/api/admin/orders');
+    $('orders').innerHTML=data.map(o=>
+      `<div class="item">
+      <b>ऑर्डर #${o.id}</b><br>
+      ग्राहक: ${escapeHtml(o.customer_name)}<br>
+      मोबाइल: ${escapeHtml(o.phone)}<br>
+      पता: ${escapeHtml(o.address)}<br>
+      कुल: ₹${o.total}<br>
+      डिलीवरी: ₹${o.delivery_fee}<br>
+      स्थिति: ${escapeHtml(o.status)}
+      <select id="s${o.id}">
+      ${['नया','स्वीकार','तैयार','रास्ते में','डिलीवर','रद्द'].map(s=>
+      `<option ${s===o.status?'selected':''}>${s}</option>`).join('')}
+      </select>
+      <button onclick="updateOrder(${o.id})">स्थिति बदलें</button>
+      </div>`
+    ).join('') || 'अभी कोई ऑर्डर नहीं है';
+  } catch(e){$('status').textContent=e.message}
+}
+
+async function updateOrder(id){
+  try {
+    await api('/api/admin/orders/'+id,{
+      method:'PATCH',
+      body:JSON.stringify({status:$('s'+id).value})
+    });
+    loadOrders();
+  } catch(e){$('status').textContent=e.message}
+}
+
+async function logout(){
+  try{await api('/api/admin/logout',{method:'POST'})}catch(e){}
+  location.reload();
+}
+
+function escapeHtml(value){
+  return String(value??'').replace(/[&<>"']/g,c=>({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+checkLogin();
+</script>
 </body>
 </html>
