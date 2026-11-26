@@ -2,54 +2,174 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>जय इंटरप्राइजेस</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background: #f4f6f8;
-      text-align: center;
-    }
-    header {
-      background: #075e54;
-      color: white;
-      padding: 25px 15px;
-    }
-    h1 { margin: 0; }
-    main { padding: 30px 15px; }
-    .card {
-      background: white;
-      padding: 25px;
-      border-radius: 12px;
-      max-width: 500px;
-      margin: auto;
-    }
-    a {
-      display: inline-block;
-      background: #128c7e;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 8px;
-      text-decoration: none;
-      margin-top: 15px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>जय इंटरप्राइजेस | ऑनलाइन दुकान</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f4f6f8;color:#222}
+header{background:#075e54;color:white;padding:22px 15px;text-align:center}
+header h1{margin:0 0 8px}
+.container{max-width:900px;margin:auto;padding:15px}
+.card{background:white;padding:16px;margin:12px 0;border-radius:10px;box-shadow:0 2px 8px #ddd}
+.products{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px}
+.product{background:white;padding:14px;border-radius:10px;box-shadow:0 2px 7px #ddd}
+.product h3{margin:5px 0}
+.price{font-weight:bold;color:#075e54}
+button{background:#075e54;color:white;border:0;padding:11px;border-radius:6px;cursor:pointer;width:100%;margin-top:8px}
+input,textarea{width:100%;padding:12px;margin:7px 0;border:1px solid #ccc;border-radius:6px;font-size:16px}
+.total{font-weight:bold;font-size:18px}
+footer{text-align:center;background:#075e54;color:white;padding:18px;margin-top:20px}
+</style>
 </head>
 <body>
-  <header>
-    <h1>जय इंटरप्राइजेस</h1>
-    <p>आपकी अपनी ऑनलाइन होम डिलीवरी सेवा</p>
-  </header>
-  <main>
-    <div class="card">
-      <h2>बंडोल एवं आसपास के गाँवों में सेवा उपलब्ध</h2>
-      <p>सुबह 8 बजे से रात 9 बजे तक</p>
-      <p>₹500 से अधिक के ऑर्डर पर डिलीवरी मुफ्त।</p>
-      <p>₹500 तक के ऑर्डर पर डिलीवरी शुल्क ₹10।</p>
-      <a href="https://wa.me/917389253333">WhatsApp पर संपर्क करें</a>
-    </div>
-  </main>
+<header>
+<h1>जय इंटरप्राइजेस</h1>
+<p>आपकी अपनी ऑनलाइन होम डिलीवरी सेवा</p>
+<p>बंडोल एवं आसपास के गाँवों में उपलब्ध</p>
+</header>
+
+<div class="container">
+<div class="card">
+<h2>हमारी दुकान</h2>
+<p>सुबह 8 बजे से रात 9 बजे तक</p>
+<p>₹500 से अधिक ऑर्डर पर डिलीवरी मुफ्त। ₹500 तक ₹10 शुल्क।</p>
+</div>
+
+<h2>सामान की सूची</h2>
+<div id="products" class="products">सामान लोड हो रहा है...</div>
+
+<div class="card">
+<h2>आपकी खरीदारी</h2>
+<div id="cart">अभी कार्ट खाली है।</div>
+<p class="total" id="bill"></p>
+</div>
+
+<div class="card">
+<h2>ऑर्डर की जानकारी</h2>
+<form id="orderForm">
+<input id="customer" placeholder="आपका पूरा नाम" required>
+<input id="phone" type="tel" placeholder="मोबाइल नंबर" required>
+<textarea id="address" placeholder="पूरा पता" required></textarea>
+<input id="village" placeholder="गाँव / मोहल्ला">
+<p>भुगतान: कैश ऑन डिलीवरी</p>
+<button type="submit">ऑर्डर बुक करें</button>
+</form>
+<p id="message"></p>
+</div>
+</div>
+
+<footer>
+जय इंटरप्राइजेस<br>
+WhatsApp: 7389253333
+</footer>
+
+<script>
+let products=[];
+let cart={};
+
+async function loadProducts(){
+try{
+const response=await fetch('/api/products');
+if(!response.ok)throw new Error();
+products=await response.json();
+showProducts();
+}catch(e){
+document.getElementById('products').textContent='सामान लोड नहीं हो सका। कृपया बाद में प्रयास करें।';
+}
+}
+
+function showProducts(){
+const area=document.getElementById('products');
+if(products.length===0){
+area.textContent='अभी कोई सामान उपलब्ध नहीं है।';
+return;
+}
+area.innerHTML=products.map(p=>`
+<div class="product">
+<h3>${safe(p.name)}</h3>
+<p>${safe(p.name_en||'')}</p>
+<p class="price">₹${Number(p.price).toFixed(2)}</p>
+<button onclick="addCart(${p.id})">कार्ट में जोड़ें</button>
+</div>`).join('');
+}
+
+function safe(v){
+return String(v??'').replace(/[&<>"']/g,c=>({
+'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+}[c]));
+}
+
+function addCart(id){
+cart[id]=(cart[id]||0)+1;
+showCart();
+}
+
+function changeQty(id,change){
+cart[id]=(cart[id]||0)+change;
+if(cart[id]<=0)delete cart[id];
+showCart();
+}
+
+function showCart(){
+let total=0;
+let count=0;
+const area=document.getElementById('cart');
+const rows=products.filter(p=>cart[p.id]).map(p=>{
+const qty=cart[p.id];
+const amount=Number(p.price)*qty;
+total+=amount;
+count+=qty;
+return `<div class="product">
+${safe(p.name)} — ₹${p.price} × ${qty}
+<button onclick="changeQty(${p.id},1)">+</button>
+<button onclick="changeQty(${p.id},-1)">−</button>
+</div>`;
+});
+area.innerHTML=rows.join('')||'अभी कार्ट खाली है।';
+const fee=count===0?0:(total>500?0:10);
+document.getElementById('bill').textContent=count===0?'':`सामान: ₹${total.toFixed(2)} | डिलीवरी: ₹${fee} | कुल: ₹${(total+fee).toFixed(2)}`;
+}
+
+document.getElementById('orderForm').addEventListener('submit',async e=>{
+e.preventDefault();
+const items=Object.entries(cart).map(([id,quantity])=>({
+product_id:Number(id),quantity
+}));
+if(items.length===0){
+document.getElementById('message').textContent='पहले सामान कार्ट में जोड़ें।';
+return;
+}
+const button=e.target.querySelector('button');
+button.disabled=true;
+document.getElementById('message').textContent='ऑर्डर भेजा जा रहा है...';
+try{
+const response=await fetch('/api/orders',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({
+customer_name:document.getElementById('customer').value,
+phone:document.getElementById('phone').value,
+address:document.getElementById('address').value,
+village:document.getElementById('village').value,
+items
+})
+});
+const data=await response.json();
+if(!response.ok)throw new Error(data.error||'ऑर्डर नहीं हुआ');
+document.getElementById('message').textContent=
+`ऑर्डर सफल! आपका ऑर्डर नंबर: ${data.order_id}। कुल राशि ₹${data.grand_total}`;
+cart={};
+showCart();
+e.target.reset();
+}catch(err){
+document.getElementById('message').textContent=err.message;
+}finally{
+button.disabled=false;
+}
+});
+
+loadProducts();
+</script>
 </body>
 </html>
