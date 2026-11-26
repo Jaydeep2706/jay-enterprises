@@ -104,13 +104,15 @@ async function initDatabase() {
     [process.env.ADMIN_USERNAME]
   );
 
-  if (admin.rowCount === 0) {
-    const hash = await bcrypt.hash(process.env.ADMIN_PASSWORD, 12);
-    await pool.query(
-      'INSERT INTO admins (username, password_hash) VALUES ($1, $2)',
-      [process.env.ADMIN_USERNAME, hash]
-    );
-  }
+  const hash = await bcrypt.hash(process.env.ADMIN_PASSWORD, 12);
+
+await pool.query(
+  `INSERT INTO admins (username, password_hash)
+   VALUES ($1, $2)
+   ON CONFLICT (username)
+   DO UPDATE SET password_hash = EXCLUDED.password_hash`,
+  [process.env.ADMIN_USERNAME, hash]
+);
 }
 
 function requireAdmin(req, res, next) {
