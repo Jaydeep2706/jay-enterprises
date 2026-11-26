@@ -9,14 +9,6 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
-const PgSession = require('connect-pg-simple')(session);
-const { Pool } = require('pg');
-const bcrypt = require('bcryptjs');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const path = require('path');
-
-const app = express();
 const PORT = process.env.PORT || 10000;
 
 if (!process.env.DATABASE_URL) {
