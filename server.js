@@ -33,7 +33,7 @@ const pool = new Pool({
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
-
+app.set('trust proxy', 1);
 app.use(session({
   store: new PgSession({
     pool,
