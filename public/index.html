@@ -148,6 +148,7 @@ return;
 }
 area.innerHTML=products.map(p=>`
 <div class="product">
+${p.image ? `<img src="${safe(p.image)}" alt="${safe(p.name)}" style="width:100%;height:130px;object-fit:contain;border-radius:8px;">` : ''}
 <h3>${safe(p.name)}</h3>
 <p>${safe(p.name_en||'')}</p>
 <p class="price">₹${Number(p.price).toFixed(2)}</p>
