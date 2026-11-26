@@ -1,4 +1,5 @@
 const express = require('express');
+const session = require('express-session');
 const PgSession = require('connect-pg-simple')(session);
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
@@ -8,9 +9,10 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
-const PORT = process.env.PORT || 10000;
 
 if (!process.env.DATABASE_URL) {
+
+
   throw new Error('DATABASE_URL is required');
 }
 if (!process.env.SESSION_SECRET || process.env.SESSION_SECRET.length < 32) {
