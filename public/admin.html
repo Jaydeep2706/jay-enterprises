@@ -113,6 +113,7 @@ async function addProduct(){
         name_en:$('pnameen').value,
         price:$('price').value,
         category:$('category').value
+        image:$('image').value
       })
     });
     $('status').textContent='सामान सफलतापूर्वक जुड़ गया';
@@ -120,6 +121,7 @@ async function addProduct(){
     $('pnameen').value='';
     $('price').value='';
     $('category').value='';
+    $('image').value='';
     loadProducts();
   } catch(e){$('status').textContent=e.message}
 }
