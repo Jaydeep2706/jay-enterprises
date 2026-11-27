@@ -178,6 +178,15 @@ async function loadProducts(){
   } catch(e){$('status').textContent=e.message}
 }
 checkLogin();
+  function escapeHtml(value){
+  return String(value ?? '').replace(/[&<>"']/g,c=>({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;'
+  }[c]));
+  }
 </script>
 </body>
 </html>
