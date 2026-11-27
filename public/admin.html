@@ -127,6 +127,42 @@ image:$('image').value
 }
 
 
+async function editProduct(id){
+  const name = prompt('सामान का नया नाम लिखें');
+  if(name === null) return;
+
+  const price = prompt('सामान की नई कीमत लिखें');
+  if(price === null) return;
+
+  try {
+    await api('/api/admin/products/'+id,{
+      method:'PATCH',
+      body:JSON.stringify({
+        name:name,
+        price:price
+      })
+    });
+    alert('सामान अपडेट हो गया');
+    loadProducts();
+  } catch(e){
+    alert(e.message);
+  }
+}
+
+async function deleteProduct(id){
+  if(!confirm('क्या आप यह सामान हटाना चाहते हैं?')) return;
+
+  try {
+    await api('/api/admin/products/'+id,{
+      method:'DELETE'
+    });
+    alert('सामान हटा दिया गया');
+    loadProducts();
+  } catch(e){
+    alert(e.message);
+  }
+}
+
 async function loadProducts(){
   try {
     const data=await api('/api/products');
