@@ -130,7 +130,10 @@ async function loadProducts(){
   try {
     const data=await api('/api/products');
     $('products').innerHTML=data.map(p=>
-      `<div class="item">${escapeHtml(p.name)} — ₹${p.price}</div>`
+      `<div class="item">
+        ${p.image ? `<img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" style="width:100px;height:100px;object-fit:contain;"><br>` : ''}
+        ${escapeHtml(p.name)} — ₹${p.price}
+      </div>`
     ).join('') || 'अभी कोई सामान नहीं है';
   } catch(e){$('status').textContent=e.message}
 }
