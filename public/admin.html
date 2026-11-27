@@ -126,62 +126,17 @@ image:$('image').value
   } catch(e){$('status').textContent=e.message}
 }
 
+
 async function loadProducts(){
   try {
     const data=await api('/api/products');
     $('products').innerHTML=data.map(p=>
       `<div class="item">
-        ${p.image ? `<img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" style="width:100px;height:100px;object-fit:contain;"><br>` : ''}
-        ${escapeHtml(p.name)} — ₹${p.price}
+        ${p.image ? `<img src="${escapeHtml(p.image)}" style="width:100px;height:100px;object-fit:contain;"><br>` : ''}
+        <b>${escapeHtml(p.name)}</b> — ₹${p.price}<br>
+        <button onclick="editProduct(${p.id})">Edit करें</button>
+        <button onclick="deleteProduct(${p.id})" style="background:#c62828;">Delete करें</button>
       </div>`
     ).join('') || 'अभी कोई सामान नहीं है';
   } catch(e){$('status').textContent=e.message}
 }
-
-async function loadOrders(){
-  try {
-    const data=await api('/api/admin/orders');
-    $('orders').innerHTML=data.map(o=>
-      `<div class="item">
-      <b>ऑर्डर #${o.id}</b><br>
-      ग्राहक: ${escapeHtml(o.customer_name)}<br>
-      मोबाइल: ${escapeHtml(o.phone)}<br>
-      पता: ${escapeHtml(o.address)}<br>
-      कुल: ₹${o.total}<br>
-      डिलीवरी: ₹${o.delivery_fee}<br>
-      स्थिति: ${escapeHtml(o.status)}
-      <select id="s${o.id}">
-      ${['नया','स्वीकार','तैयार','रास्ते में','डिलीवर','रद्द'].map(s=>
-      `<option ${s===o.status?'selected':''}>${s}</option>`).join('')}
-      </select>
-      <button onclick="updateOrder(${o.id})">स्थिति बदलें</button>
-      </div>`
-    ).join('') || 'अभी कोई ऑर्डर नहीं है';
-  } catch(e){$('status').textContent=e.message}
-}
-
-async function updateOrder(id){
-  try {
-    await api('/api/admin/orders/'+id,{
-      method:'PATCH',
-      body:JSON.stringify({status:$('s'+id).value})
-    });
-    loadOrders();
-  } catch(e){$('status').textContent=e.message}
-}
-
-async function logout(){
-  try{await api('/api/admin/logout',{method:'POST'})}catch(e){}
-  location.reload();
-}
-
-function escapeHtml(value){
-  return String(value??'').replace(/[&<>"']/g,c=>({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  }[c]));
-}
-
-checkLogin();
-</script>
-</body>
-</html>
