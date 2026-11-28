@@ -148,31 +148,83 @@ const delivery=total>500?0:10;
 bill.textContent=`सामान: ₹${total.toFixed(2)} | डिलीवरी: ₹${delivery} | कुल: ₹${(total+delivery).toFixed(2)}`;
 }
 
-document.getElementById('orderForm').addEventListener('submit',function(e){
+document.getElementById('orderForm').addEventListener('submit',async function(e){
 e.preventDefault();
+
 const ids=Object.keys(cart);
+const messageBox=document.getElementById('message');
+
 if(!ids.length){
-document.getElementById('message').textContent='कृपया पहले सामान कार्ट में जोड़ें।';
+messageBox.textContent='कृपया पहले सामान कार्ट में जोड़ें।';
 return;
 }
-let total=0;
-let lines=ids.map(id=>{
+
+const items=ids.map(id=>({
+product_id:Number(id),
+quantity:Number(cart[id])
+}));
+
+const total=ids.reduce((sum,id)=>{
 const p=products.find(x=>Number(x.id)===Number(id));
-if(!p)return '';
-total+=Number(p.price)*cart[id];
-return `${p.name} x ${cart[id]} = ₹${(Number(p.price)*cart[id]).toFixed(2)}`;
-});
-const delivery=total>500?0:10;
-const grand=total+delivery;
+return sum+(p?Number(p.price)*cart[id]:0);
+},0);
+
 const name=document.getElementById('customer').value.trim();
 const phone=document.getElementById('phone').value.trim();
 const address=document.getElementById('address').value.trim();
 const village=document.getElementById('village').value.trim();
-const message=`नया ऑर्डर - जय इंटरप्राइजेस\nनाम: ${name}\nमोबाइल: ${phone}\nपता: ${address}\nगाँव: ${village}\n\nसामान:\n${lines.join('\n')}\n\nसामान का कुल: ₹${total}\nडिलीवरी: ₹${delivery}\nकुल राशि: ₹${grand}`;
-window.open('https://wa.me/917389253333?text='+encodeURIComponent(message),'_blank');
+
+const delivery=total>500?0:10;
+const grand=total+delivery;
+
+messageBox.textContent='ऑर्डर सेव हो रहा है...';
+
+try{
+const response=await fetch('/api/orders',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({
+customer_name:name,
+phone:phone,
+address:address,
+village:village,
+items:items
+})
 });
 
-loadProducts();
-</script>
-</body>
-</html>
+const result=await response.json();
+
+if(!response.ok){
+throw new Error(result.error||'ऑर्डर सेव नहीं हुआ');
+}
+
+const lines=ids.map(id=>{
+const p=products.find(x=>Number(x.id)===Number(id));
+return p?`${p.name} x ${cart[id]} = ₹${Number(p.price)*cart[id]}`:'';
+});
+
+const whatsappMessage=`नया ऑर्डर - जय इंटरप्राइजेस
+ऑर्डर नंबर: ${result.order_id}
+नाम: ${name}
+मोबाइल: ${phone}
+पता: ${address}
+गाँव: ${village}
+
+${lines.join('\n')}
+
+सामान: ₹${total}
+डिलीवरी: ₹${delivery}
+कुल राशि: ₹${grand}`;
+
+window.open('https://wa.me/917389253333?text='+encodeURIComponent(whatsappMessage),'_blank');
+
+messageBox.textContent='ऑर्डर सफलतापूर्वक सेव हो गया। धन्यवाद!';
+
+cart={};
+showCart();
+document.getElementById('orderForm').reset();
+
+}catch(error){
+messageBox.textContent='ऑर्डर सेव नहीं हुआ: '+error.message;
+}
+});
