@@ -178,14 +178,29 @@ showProducts();
 document.getElementById('products').textContent='सामान लोड नहीं हो सका। कृपया बाद में प्रयास करें।';
 }
 }
+let searchText = '';
 
+function searchProducts(value){
+searchText = value.toLowerCase();
+showProducts();
+}
 function showProducts(){
 const area=document.getElementById('products');
 if(products.length===0){
 area.textContent='अभी कोई सामान उपलब्ध नहीं है।';
 return;
 }
-area.innerHTML=products.map(p=>`
+const filteredProducts = products.filter(p =>
+String(p.name || '').toLowerCase().includes(searchText) ||
+String(p.name_en || '').toLowerCase().includes(searchText)
+);
+
+if(filteredProducts.length===0){
+area.textContent='कोई सामान नहीं मिला।';
+return;
+}
+
+area.innerHTML=filteredProducts.map(p=>`
 <div class="product">
 ${p.image ? `<img src="${safe(p.image)}" alt="${safe(p.name)}" style="width:100%;height:130px;object-fit:contain;border-radius:8px;">` : ''}
 <h3>${safe(p.name)}</h3>
